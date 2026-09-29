@@ -1,7 +1,7 @@
 # Thông Tin Deploy — Checkpoint 5
 
-> Điền file này sau khi deploy xong. `pytest tests/test_cp5.py` đọc file này
-> để tìm địa chỉ service của bạn và gọi thử.
+> Service đã deploy trên Railway. `pytest tests/test_cp5.py` đọc file này
+> để tìm địa chỉ service và gọi thử.
 >
 > **Chỉ ghi TÊN biến môi trường, tuyệt đối không dán giá trị API key vào đây.**
 > Repo này công khai — dán khóa vào là mất khóa.
@@ -47,9 +47,9 @@ xác nhận `REDIS_URL` trong service agent đang tham chiếu đúng Redis serv
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
-| Ngày deploy | (điền ngày) |
+| Public URL | https://day12-agent-production-68dc.up.railway.app |
+| Platform | Railway |
+| Ngày deploy | 2026-09-29 |
 
 ## Biến Môi Trường Cloud
 
@@ -58,30 +58,30 @@ Sau khi cấu hình, ghi trạng thái và **nguồn giá trị**, không ghi se
 | Biến | Trạng thái | Ghi chú |
 |------|--------|---------|
 | `PORT` | Platform cấp | Không tự ghi đè |
-| `AGENT_API_KEY` | Chưa xác nhận | Secret trong dashboard, không nằm trong repo |
-| `REDIS_URL` | Chưa xác nhận | Tham chiếu Redis service trên Railway |
-| `RATE_LIMIT_PER_MINUTE` | Chưa xác nhận | `10` |
-| `MONTHLY_BUDGET_USD` | Chưa xác nhận | `10.0` |
-| `LOG_LEVEL` | Chưa xác nhận | `INFO` |
+| `AGENT_API_KEY` | Đã cấu hình | Secret trong Railway Variables; không lưu giá trị trong repo |
+| `REDIS_URL` | Đã cấu hình | Redis trên Railway; kết nối được xác nhận qua `/ready` |
+| `RATE_LIMIT_PER_MINUTE` | Đã cấu hình | `10` |
+| `MONTHLY_BUDGET_USD` | Đã cấu hình | `10.0` |
+| `LOG_LEVEL` | Đã cấu hình | `INFO` |
 
 ## Lệnh Kiểm Tra
 
-Thay `<URL>` bằng Public URL ở trên:
+Các lệnh đã dùng để kiểm tra service:
 
 ```bash
 # 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i <URL>/health
+curl -i https://day12-agent-production-68dc.up.railway.app/health
 
 # 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i <URL>/ready
+curl -i https://day12-agent-production-68dc.up.railway.app/ready
 
 # 3. Không có API key — mong đợi 401
-curl -i -X POST <URL>/ask \
+curl -i -X POST https://day12-agent-production-68dc.up.railway.app/ask \
   -H "Content-Type: application/json" \
   -d '{"question":"Hello"}'
 
 # 4. Có API key — mong đợi 200 kèm câu trả lời
-curl -i -X POST <URL>/ask \
+curl -i -X POST https://day12-agent-production-68dc.up.railway.app/ask \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $AGENT_API_KEY" \
   -H "X-User-Id: sv-test" \
@@ -89,7 +89,7 @@ curl -i -X POST <URL>/ask \
 
 # 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
 for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST <URL>/ask \
+  curl -s -o /dev/null -w "%{http_code} " -X POST https://day12-agent-production-68dc.up.railway.app/ask \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $AGENT_API_KEY" \
     -H "X-User-Id: sv-test" \
@@ -99,10 +99,11 @@ done; echo
 
 ## Kết Quả Chạy Thật
 
-Dán output của các lệnh trên vào đây:
-
-```
-(điền output)
+```text
+GET /health: 200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
+GET /ready: 200 {"status":"ready","redis":true}
+POST /ask without X-API-Key: 401 {"detail":"invalid or missing API key"}
+Authenticated /ask and rate-limit burst: not recorded here; these checks require the API secret.
 ```
 
 ## Ảnh Chụp Màn Hình
@@ -114,17 +115,6 @@ Dán output của các lệnh trên vào đây:
 
 ---
 
-## Nếu Dùng Phương Án Dự Phòng
+## Phương Án Dự Phòng
 
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
-```
+Không sử dụng; service đã deploy trực tiếp trên Railway.

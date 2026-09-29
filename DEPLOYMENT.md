@@ -6,13 +6,42 @@
 > **Chỉ ghi TÊN biến môi trường, tuyệt đối không dán giá trị API key vào đây.**
 > Repo này công khai — dán khóa vào là mất khóa.
 
+## Railway
+
+`railway.toml` build bằng Dockerfile, healthcheck `/health`, và chạy Uvicorn
+trên `0.0.0.0:$PORT`. Railway cấp `PORT`; không tự tạo hoặc ghi đè biến này.
+
+Có thể deploy bằng CLI:
+
+```bash
+railway login
+railway init
+railway add --database redis
+railway up
+railway domain
+railway logs
+```
+
+Trong Railway, mở service agent → **Variables** và cấu hình:
+
+| Biến | Nguồn / giá trị |
+|------|------------------|
+| `AGENT_API_KEY` | Tạo khóa ngẫu nhiên và lưu như secret trong dashboard; không commit vào repo hoặc ghi vào terminal history. |
+| `REDIS_URL` | Tham chiếu biến URL của service Redis, ví dụ `${{Redis.REDIS_URL}}`; thay `Redis` bằng đúng tên service nếu khác. |
+| `RATE_LIMIT_PER_MINUTE` | `10` |
+| `MONTHLY_BUDGET_USD` | `10.0` |
+| `LOG_LEVEL` | `INFO` |
+
+Sau deploy, kiểm tra `/health` trả 200 và `/ready` trả 200. Nếu `/ready` trả 503,
+xác nhận `REDIS_URL` trong service agent đang tham chiếu đúng Redis service.
+
 ## Thông Tin Học Viên
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo K4-L3B-DAY12-HoVaTen-MSSV-CloudServicesAndDeployment) |
+| Họ và tên | Nguyễn Minh Thái |
+| Mã học viên | 2A202602726 |
+| Repo | https://github.com/aoi36/K4-L3B-Day12-NguyenMinhThai-2A202602726Cloud-Service-And-Deployment
 
 ## Service
 
@@ -22,18 +51,18 @@
 | Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
 | Ngày deploy | (điền ngày) |
 
-## Biến Môi Trường Đã Set Trên Cloud
+## Biến Môi Trường Cloud
 
-Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
+Sau khi cấu hình, ghi trạng thái và **nguồn giá trị**, không ghi secret:
 
-| Biến | Đã set | Ghi chú |
+| Biến | Trạng thái | Ghi chú |
 |------|--------|---------|
-| `PORT` | ✅ | platform tự gán |
-| `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
-| `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
-| `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
-| `LOG_LEVEL` | ✅ | INFO |
+| `PORT` | Platform cấp | Không tự ghi đè |
+| `AGENT_API_KEY` | Chưa xác nhận | Secret trong dashboard, không nằm trong repo |
+| `REDIS_URL` | Chưa xác nhận | Tham chiếu Redis service trên Railway |
+| `RATE_LIMIT_PER_MINUTE` | Chưa xác nhận | `10` |
+| `MONTHLY_BUDGET_USD` | Chưa xác nhận | `10.0` |
+| `LOG_LEVEL` | Chưa xác nhận | `INFO` |
 
 ## Lệnh Kiểm Tra
 
